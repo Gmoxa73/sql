@@ -19,7 +19,7 @@ CREATE TABLE if not exists Artist_Genre (
 CREATE TABLE if not exists Album (
   AlbumID INT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  year SMALLINT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
+  year SMALLINT NOT NULL CHECK (year >= 1960 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
 );
 
 CREATE TABLE if not exists Artist_Album (
@@ -41,7 +41,7 @@ CREATE TABLE if not exists Trek (
 CREATE TABLE if not exists Mix (
   MixID INT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  year SMALLINT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
+  year SMALLINT NOT NULL CHECK (year >= 1960 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
 );
 
 CREATE TABLE if not exists Trek_Mix (
