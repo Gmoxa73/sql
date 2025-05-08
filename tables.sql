@@ -1,57 +1,53 @@
-create table if not exists Artist
-(
-ArtistID SERIAL PRIMARY KEY,
-name varchar(50) NOT NULL
+CREATE TABLE if not exists Artist (
+  ArtistID INT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL
 );
 
-create table if not exists Genre
-(
-GenreID SERIAL PRIMARY KEY,
-name varchar(50) NOT NULL
+CREATE TABLE if not exists Genre (
+  GenreID INT PRIMARY KEY,
+  genre VARCHAR(50) NOT NULL
 );
 
-create table if not exists Album
-(
-AlbumID SERIAL PRIMARY KEY,
-name varchar(50) NOT NULL,
-year INT NOT NULL
+CREATE TABLE if not exists Artist_Genre (
+  AGID INT PRIMARY KEY,
+  ArtistID INT NOT NULL,
+  GenreID INT NOT NULL,
+  CONSTRAINT FK_Artist FOREIGN KEY (ArtistID) REFERENCES Artist(ArtistID),
+  CONSTRAINT FK_Genre FOREIGN KEY (GenreID) REFERENCES Genre(GenreID)
 );
 
-create table if not exists Artist_Genre
-(
-AGID SERIAL PRIMARY KEY,
-ArtistID INT NOT NULL,
-GenreID INT NOT NULL,
-CONSTRAINT FK_Artist FOREIGN KEY (ArtistID) REFERENCES Artist(ArtistID),
-CONSTRAINT FK_Genre FOREIGN KEY (GenreID) references Genre(GenreID)
+CREATE TABLE if not exists Album (
+  AlbumID INT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  year SMALLINT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
 );
 
-create table if not exists Artist_Album
-(
-AAID SERIAL PRIMARY KEY,
-ArtistID INT NOT NULL,
-AlbumID INT NOT NULL,
-CONSTRAINT FK_Artist FOREIGN KEY (ArtistID) REFERENCES Artist(ArtistID),
-CONSTRAINT FK_Album FOREIGN KEY (AlbumID) references Album(AlbumID)
+CREATE TABLE if not exists Artist_Album (
+  AAID INT PRIMARY KEY,
+  ArtistID INT NOT NULL,
+  AlbumID INT NOT NULL,
+  CONSTRAINT FK_Artist FOREIGN KEY (ArtistID) REFERENCES Artist(ArtistID),
+  CONSTRAINT FK_Album FOREIGN KEY (AlbumID) REFERENCES Album(AlbumID)
 );
 
-create table if not exists Trek
-(
-TrekID SERIAL PRIMARY KEY,
-ArtistID INT NOT NULL,
-name VARCHAR(50) NOT NULL,
-duration INT NOT NULL,
-AlbumID INT NOT NULL,
-CONSTRAINT FK_Album_Trek FOREIGN KEY (AlbumID) REFERENCES Album(AlbumID)
+CREATE TABLE if not exists Trek (
+  TrekID INT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  duration INT NOT NULL CHECK (duration > 0),
+  AlbumID INT NOT NULL,
+  CONSTRAINT FK_Album_Trek FOREIGN KEY (AlbumID) REFERENCES Album(AlbumID)
 );
 
-create table if not exists Mix
-(
-MixID SERIAL PRIMARY KEY,
-name VARCHAR(50) NOT NULL,
-year INT NOT NULL,
-AlbumID INT NOT NULL,
-TrekID INT NOT NULL,
-CONSTRAINT FK_Album_Trek FOREIGN KEY (AlbumID) REFERENCES Album(AlbumID),
-CONSTRAINT FK_Album_Album FOREIGN KEY (TrekID) REFERENCES Trek(TrekID)
+CREATE TABLE if not exists Mix (
+  MixID INT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  year SMALLINT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE))
+);
+
+CREATE TABLE if not exists Trek_Mix (
+  TrekID INT,
+  MixID INT,
+  PRIMARY KEY (TrekID, MixID),
+  CONSTRAINT FK_Trek_Mix_Trek FOREIGN KEY (TrekID) REFERENCES Trek(TrekID),
+  CONSTRAINT FK_Trek_Mix_Mix FOREIGN KEY (MixID) REFERENCES Mix(MixID)
 );
