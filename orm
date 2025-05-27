@@ -1,0 +1,121 @@
+import sqlalchemy
+import sqlalchemy as sq
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
+Base = declarative_base()
+
+class Publisher(Base):
+    __tablename__ = "publisher"
+
+    id = sq.Column(sq.Integer, primary_key=True)
+    name = sq.Column(sq.String(length=40), unique=True)
+
+
+class Book(Base):
+    __tablename__ = "book"
+
+    id = sq.Column(sq.Integer, primary_key=True)
+    title = sq.Column(sq.Text, nullable=False)
+    publisher_id = sq.Column(sq.Integer, sq.ForeignKey("publisher.id"), nullable=False)
+
+    publisher = relationship(Publisher, backref="book")
+
+class Shop(Base):
+    __tablename__ = "shop"
+
+    id = sq.Column(sq.Integer, primary_key=True)
+    name = sq.Column(sq.String(length=40), unique=True)
+
+
+class Stock(Base):
+    __tablename__ = "stock"
+
+    id = sq.Column(sq.Integer, primary_key=True)
+    book_id = sq.Column(sq.Integer, sq.ForeignKey("book.id"), nullable=False)
+    shop_id = sq.Column(sq.Integer, sq.ForeignKey("shop.id"), nullable=False)
+    count = sq.Column(sq.Integer, nullable=False)
+
+    book = relationship(Book, backref="stock")
+    shop = relationship(Shop, backref="stock")
+
+class Sale(Base):
+    __tablename__ = "sale"
+
+    id = sq.Column(sq.Integer, primary_key=True)
+    price = sq.Column(sq.Float(2), nullable=False)
+    data_sale = sq.Column(sq.Text, nullable=False)
+    stock_id = sq.Column(sq.Integer, sq.ForeignKey("stock.id"), nullable=False)
+    count = sq.Column(sq.Integer, nullable=False)
+
+    stock = relationship(Stock, backref="sale")
+
+def create_tables(engine):
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+DSN = 'postgresql://postgres:000@localhost:5432/test'
+engine = sqlalchemy.create_engine(DSN)
+
+create_tables(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# создание объектов
+pb1 = Publisher(name="Sokol")
+pb2 = Publisher(name="Zara")
+pb3 = Publisher(name="Zvezda")
+pb4 = Publisher(name="Nord")
+
+sh1 = Shop(name="Shop1")
+sh2 = Shop(name="Shop2")
+sh3 = Shop(name="Shop3")
+
+bo1 = Book(title="Book1", publisher=pb1)
+bo2 = Book(title="Book2", publisher=pb3)
+bo3 = Book(title="Book3", publisher=pb2)
+bo4 = Book(title="Book4", publisher=pb4)
+bo5 = Book(title="Book5", publisher=pb3)
+bo6 = Book(title="Book6", publisher=pb2)
+bo7 = Book(title="Book7", publisher=pb1)
+
+st1 = Stock(shop = sh1, book=bo1, count=10)
+st2 = Stock(shop = sh2, book=bo2, count=5)
+st3 = Stock(shop = sh3, book=bo3, count=12)
+st4 = Stock(shop = sh1, book=bo4, count=7)
+st5 = Stock(shop = sh3, book=bo4, count=8)
+st6 = Stock(shop = sh2, book=bo3, count=34)
+st7 = Stock(shop = sh3, book=bo2, count=2)
+st8 = Stock(shop = sh1, book=bo1, count=0)
+
+s1 = Sale(price = 25, data_sale="10.05.25", stock_id=2, count=11)
+s2 = Sale(price = 12, data_sale="11.05.25", stock_id=3, count=15)
+s3 = Sale(price = 5, data_sale="12.05.25", stock_id=1, count=2)
+s4 = Sale(price = 65, data_sale="13.05.25", stock_id=4, count=17)
+s5 = Sale(price = 19, data_sale="14.05.25", stock_id=6, count=18)
+s6 = Sale(price = 32, data_sale="15.05.25", stock_id=8, count=4)
+s7 = Sale(price = 41, data_sale="16.05.25", stock_id=7, count=12)
+s8 = Sale(price = 55, data_sale="17.05.25", stock_id=3, count=0)
+
+# session.add(js)
+# print(js.id)
+session.add_all([pb1, pb2, pb3, pb4, sh1,sh2,sh3])
+session.add_all([bo1, bo2, bo3, bo4, bo5, bo6, bo7])
+session.add_all([st1, st2, st3, st4, st5, st6, st7, st8])
+
+session.add_all([s1, s2, s3, s4, s5, s6, s7, s8])
+session.commit()  # фиксируем изменения
+#print(pb3.id)
+
+inn = input("Введите id Издательства ")
+# запросы
+#print(session.query(Sale).all())
+q = (session.query(Publisher, Book.title, Sale.price, Sale.data_sale, Shop.name).
+     join(Publisher.book).
+     join(Book.stock).
+     join(Stock.shop).
+     join(Stock.sale).
+     filter(Publisher.id == inn))
+
+#print(q)
+for publisher, title, price, sale_date, shop_name in q.all():
+    print(f'Book: {title} |, Shop: {shop_name} |, Price: {price} |, Date: {sale_date}')
